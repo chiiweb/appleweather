@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Weather — Liquid Glass</title>
+<link rel="icon" href="/weather/favicon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="weather.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+</head>
+<body>
+  <video class="bg-video" autoplay muted loop playsinline>
+    <source src="/video/weather-bg.mp4" type="video/mp4" />
+  </video>
+  <div class="bg-overlay"></div>
+
+  <main class="app">
+    <!-- Search -->
+    <div class="search-bar glass">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input id="searchInput" type="text" placeholder="Search city or airport" autocomplete="off" />
+      <button id="locBtn" title="My location"><i class="fa-solid fa-location-crosshairs"></i></button>
+    </div>
+
+    <!-- Hero -->
+    <section class="hero">
+      <h1 id="city">—</h1>
+      <div class="temp-row">
+        <span id="temp" class="temp">--</span>
+        <span class="deg">°</span>
+      </div>
+      <p id="cond" class="cond">—</p>
+      <p class="hilo"><span>H:<span id="hi">--°</span></span> <span>L:<span id="lo">--°</span></span></p>
+    </section>
+
+    <!-- Hourly -->
+    <section class="card glass">
+      <header class="card-h"><i class="fa-regular fa-clock"></i><span id="hourlyLead">Hourly Forecast</span></header>
+      <div class="hourly" id="hourly"></div>
+    </section>
+
+    <!-- 10-day -->
+    <section class="card glass">
+      <header class="card-h"><i class="fa-regular fa-calendar"></i><span>10-Day Forecast</span></header>
+      <div class="daily" id="daily"></div>
+    </section>
+
+    <!-- Grid metrics -->
+    <section class="grid">
+      <div class="card glass small">
+        <header class="card-h"><i class="fa-solid fa-sun"></i><span>UV INDEX</span></header>
+        <div class="metric"><span id="uv" class="big">—</span><span id="uvLabel" class="sub">—</span>
+          <div class="uv-bar"><div id="uvFill"></div></div>
+        </div>
+      </div>
+      <div class="card glass small">
+        <header class="card-h"><i class="fa-solid fa-sun-plant-wilt"></i><span>SUNSET</span></header>
+        <div class="metric"><span id="sunset" class="big">—</span><span class="sub">Sunrise: <span id="sunrise">—</span></span></div>
+      </div>
+      <div class="card glass small">
+        <header class="card-h"><i class="fa-solid fa-wind"></i><span>WIND</span></header>
+        <div class="metric"><span id="wind" class="big">—</span><span class="sub">km/h</span></div>
+      </div>
+      <div class="card glass small">
+        <header class="card-h"><i class="fa-solid fa-droplet"></i><span>HUMIDITY</span></header>
+        <div class="metric"><span id="hum" class="big">—</span><span class="sub">Dew point <span id="dew">—</span>°</span></div>
+      </div>
+      <div class="card glass small">
+        <header class="card-h"><i class="fa-solid fa-eye"></i><span>VISIBILITY</span></header>
+        <div class="metric"><span id="vis" class="big">—</span><span class="sub">km</span></div>
+      </div>
+      <div class="card glass small">
+        <header class="card-h"><i class="fa-solid fa-gauge-high"></i><span>PRESSURE</span></header>
+        <div class="metric"><span id="press" class="big">—</span><span class="sub">hPa</span></div>
+      </div>
+      <div class="card glass small">
+        <header class="card-h"><i class="fa-solid fa-temperature-half"></i><span>FEELS LIKE</span></header>
+        <div class="metric"><span id="feels" class="big">—</span><span class="sub">°</span></div>
+      </div>
+      <div class="card glass small">
+        <header class="card-h"><i class="fa-solid fa-cloud-rain"></i><span>PRECIPITATION</span></header>
+        <div class="metric"><span id="precip" class="big">—</span><span class="sub">mm last hr</span></div>
+      </div>
+    </section>
+
+    <footer class="foot">Liquid Glass Weather · Powered by OpenWeather</footer>
+  </main>
+
+  <script src="weather.js"></script>
+</body>
+</html>
