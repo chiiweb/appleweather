@@ -1,6 +1,21 @@
 /* Liquid Glass Weather — OpenWeather */
-const API_KEY = "REPLACE_WITH_YOUR_OPENWEATHER_API_KEY";
+const API_KEY = "5eeee11cdb5e6f638c5145acafd9ac51";
 const BASE = "https://api.openweathermap.org";
+
+function setBackground(cur){
+  const code = cur.weather[0].icon; // e.g. 01d, 10n
+  const isNight = code.endsWith("n");
+  const main = code.slice(0,2);
+  // 1 clouds-day, 2 clear-sun, 3 hazy-day, 4 dusk-cloud, 5 night-stars, 6 twilight
+  let pick = "weather_2.jpg";
+  if (isNight) pick = (main === "01") ? "weather_5.jpg" : "weather_6.jpg";
+  else if (main === "01") pick = "weather_2.jpg";
+  else if (main === "02") pick = "weather_3.jpg";
+  else if (main === "03" || main === "04") pick = "weather_1.jpg";
+  else if (main === "09" || main === "10" || main === "11") pick = "weather_4.jpg";
+  else if (main === "13" || main === "50") pick = "weather_3.jpg";
+  document.getElementById("bgImage").style.backgroundImage = `url('/weather/bg/${pick}')`;
+}
 
 const $ = (id) => document.getElementById(id);
 const round = (n) => Math.round(n);
@@ -89,7 +104,7 @@ function render(name, cur, fc){
 
   // Hourly
   const hourly = $("hourly"); hourly.innerHTML = "";
-  $("hourlyLead").textContent = `${cur.weather[0].main} now. High ${hi}°, low ${lo}°.`;
+  setBackground(cur);
   // first slot = Now
   const nowEl = document.createElement("div"); nowEl.className = "h-item";
   nowEl.innerHTML = `<span class="h-t">Now</span><i class="${iconFor(cur.weather[0].icon)}"></i><span class="h-tm">${round(cur.main.temp)}°</span>`;
