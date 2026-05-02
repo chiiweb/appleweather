@@ -9,9 +9,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 </head>
 <body>
-  <video class="bg-video" autoplay muted loop playsinline>
-    <source src="/video/weather-bg.mp4" type="video/mp4" />
-  </video>
+  <div class="bg-image" id="bgImage"></div>
   <div class="bg-overlay"></div>
 
   <main class="app">
@@ -30,18 +28,18 @@
         <span class="deg">°</span>
       </div>
       <p id="cond" class="cond">—</p>
-      <p class="hilo"><span>H:<span id="hi">--°</span></span> <span>L:<span id="lo">--°</span></span></p>
+      <p class="hilo">H:<span id="hi">--°</span>  L:<span id="lo">--°</span></p>
     </section>
 
     <!-- Hourly -->
     <section class="card glass">
-      <header class="card-h"><i class="fa-regular fa-clock"></i><span id="hourlyLead">Hourly Forecast</span></header>
+      <header class="card-h"><span>Hourly</span></header>
       <div class="hourly" id="hourly"></div>
     </section>
 
     <!-- 10-day -->
     <section class="card glass">
-      <header class="card-h"><i class="fa-regular fa-calendar"></i><span>10-Day Forecast</span></header>
+      <header class="card-h"><span>10-Day Forecast</span></header>
       <div class="daily" id="daily"></div>
     </section>
 

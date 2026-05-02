@@ -1,5 +1,5 @@
 /* Liquid Glass Weather — OpenWeather */
-const API_KEY = "REPLACE_WITH_YOUR_OPENWEATHER_API_KEY";
+const API_KEY = "5eeee11cdb5e6f638c5145acafd9ac51";
 const BASE = "https://api.openweathermap.org";
 
 const $ = (id) => document.getElementById(id);
