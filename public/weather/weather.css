@@ -102,3 +102,8 @@ html,body{min-height:100%;background:#0a1024;color:#fff;font-family:"SF Pro",-ap
 @keyframes pulse{50%{opacity:.85}}
 
 @media(min-width:520px){.app{max-width:520px}}
+
+/* Unit toggle */
+.unit-toggle{display:inline-flex;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:99px;padding:2px;gap:2px}
+.unit-btn{background:transparent;border:0;color:rgba(255,255,255,.75);font:600 13px "SF Pro",sans-serif;padding:5px 10px;border-radius:99px;cursor:pointer;transition:all .25s ease;min-width:34px}
+.unit-btn.active{background:rgba(255,255,255,.9);color:#0a1024;box-shadow:0 2px 8px rgba(0,0,0,.18)}
