@@ -2,11 +2,29 @@
 const API_KEY = "5eeee11cdb5e6f638c5145acafd9ac51";
 const BASE = "https://api.openweathermap.org";
 
+/* Crossfade background system */
+const bgEls = [document.getElementById("bgA"), document.getElementById("bgB")];
+let bgActive = 0;
+let currentBgUrl = "";
+function swapBg(url){
+  if (url === currentBgUrl) return;
+  currentBgUrl = url;
+  const next = (bgActive + 1) % 2;
+  const img = new Image();
+  img.onload = () => {
+    bgEls[next].style.backgroundImage = `url('${url}')`;
+    bgEls[next].classList.add("active");
+    bgEls[bgActive].classList.remove("active");
+    bgActive = next;
+  };
+  img.onerror = () => console.warn("bg failed:", url);
+  img.src = url;
+}
+
 function setBackground(cur){
-  const code = cur.weather[0].icon; // e.g. 01d, 10n
+  const code = cur.weather[0].icon;
   const isNight = code.endsWith("n");
   const main = code.slice(0,2);
-  // 1 clouds-day, 2 clear-sun, 3 hazy-day, 4 dusk-cloud, 5 night-stars, 6 twilight
   let pick = "weather_2.jpg";
   if (isNight) pick = (main === "01") ? "weather_5.jpg" : "weather_6.jpg";
   else if (main === "01") pick = "weather_2.jpg";
@@ -14,8 +32,11 @@ function setBackground(cur){
   else if (main === "03" || main === "04") pick = "weather_1.jpg";
   else if (main === "09" || main === "10" || main === "11") pick = "weather_4.jpg";
   else if (main === "13" || main === "50") pick = "weather_3.jpg";
-  document.getElementById("bgImage").style.backgroundImage = `url('/weather/bg/${pick}')`;
+  swapBg(`bg/${pick}`);
 }
+
+// Show a default bg immediately so user sees something while API loads
+swapBg("bg/weather_2.jpg");
 
 const $ = (id) => document.getElementById(id);
 const round = (n) => Math.round(n);
@@ -37,18 +58,17 @@ const dayName = (ts, tz=0, i=0) => {
   return ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getUTCDay()];
 };
 
-/* Map OpenWeather icon -> FontAwesome */
 function iconFor(code) {
   const map = {
-    "01d":"fa-solid fa-sun",            "01n":"fa-solid fa-moon",
-    "02d":"fa-solid fa-cloud-sun",      "02n":"fa-solid fa-cloud-moon",
-    "03d":"fa-solid fa-cloud",          "03n":"fa-solid fa-cloud",
-    "04d":"fa-solid fa-clouds",         "04n":"fa-solid fa-clouds",
+    "01d":"fa-solid fa-sun","01n":"fa-solid fa-moon",
+    "02d":"fa-solid fa-cloud-sun","02n":"fa-solid fa-cloud-moon",
+    "03d":"fa-solid fa-cloud","03n":"fa-solid fa-cloud",
+    "04d":"fa-solid fa-clouds","04n":"fa-solid fa-clouds",
     "09d":"fa-solid fa-cloud-showers-heavy","09n":"fa-solid fa-cloud-showers-heavy",
-    "10d":"fa-solid fa-cloud-sun-rain", "10n":"fa-solid fa-cloud-moon-rain",
-    "11d":"fa-solid fa-cloud-bolt",     "11n":"fa-solid fa-cloud-bolt",
-    "13d":"fa-solid fa-snowflake",      "13n":"fa-solid fa-snowflake",
-    "50d":"fa-solid fa-smog",           "50n":"fa-solid fa-smog",
+    "10d":"fa-solid fa-cloud-sun-rain","10n":"fa-solid fa-cloud-moon-rain",
+    "11d":"fa-solid fa-cloud-bolt","11n":"fa-solid fa-cloud-bolt",
+    "13d":"fa-solid fa-snowflake","13n":"fa-solid fa-snowflake",
+    "50d":"fa-solid fa-smog","50n":"fa-solid fa-smog",
   };
   return map[code] || "fa-solid fa-cloud";
 }
@@ -58,11 +78,10 @@ function uvLabel(uv){
   if (uv<8) return "High"; if (uv<11) return "Very High"; return "Extreme";
 }
 
-async function geocode(q){
-  const r = await fetch(`${BASE}/geo/1.0/direct?q=${encodeURIComponent(q)}&limit=1&appid=${API_KEY}`);
-  const j = await r.json();
-  if (!j.length) throw new Error("City not found");
-  return { lat:j[0].lat, lon:j[0].lon, name:`${j[0].name}${j[0].state?", "+j[0].state:""}` };
+async function geocodeMany(q, limit=5){
+  const r = await fetch(`${BASE}/geo/1.0/direct?q=${encodeURIComponent(q)}&limit=${limit}&appid=${API_KEY}`);
+  if (!r.ok) return [];
+  return r.json();
 }
 
 async function reverse(lat,lon){
@@ -71,10 +90,20 @@ async function reverse(lat,lon){
   return j[0] ? `${j[0].name}${j[0].state?", "+j[0].state:""}` : "My Location";
 }
 
+/* ---------- Smooth content transition wrapper ---------- */
+const swapTargets = ["city","temp","cond","hi","lo","hourly","daily","wind","hum","dew","vis","press","feels","precip","sunrise","sunset","uv","uvLabel"];
+function withTransition(fn){
+  const main = document.querySelector(".app");
+  main.classList.add("swap","fading");
+  setTimeout(()=>{
+    fn();
+    requestAnimationFrame(()=> main.classList.remove("fading"));
+  }, 260);
+}
+
 async function loadWeather(lat, lon, name){
   document.body.classList.add("loading");
   try {
-    // current + forecast (5d/3h) — works on free tier
     const [curR, fcR] = await Promise.all([
       fetch(`${BASE}/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`),
       fetch(`${BASE}/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`)
@@ -82,7 +111,8 @@ async function loadWeather(lat, lon, name){
     if (!curR.ok || !fcR.ok) throw new Error("API error — check your API key");
     const cur = await curR.json();
     const fc  = await fcR.json();
-    render(name || cur.name, cur, fc);
+    setBackground(cur);
+    withTransition(()=> render(name || cur.name, cur, fc));
   } catch (e) {
     alert(e.message);
     console.error(e);
@@ -96,16 +126,12 @@ function render(name, cur, fc){
   $("city").textContent = name;
   $("temp").textContent = round(cur.main.temp);
   $("cond").textContent = cur.weather[0].description.replace(/\b\w/g,c=>c.toUpperCase());
-  // hi/lo from next 24h forecast
   const next24 = fc.list.slice(0,8);
   const hi = round(Math.max(...next24.map(x=>x.main.temp_max)));
   const lo = round(Math.min(...next24.map(x=>x.main.temp_min)));
   $("hi").textContent = hi+"°"; $("lo").textContent = lo+"°";
 
-  // Hourly
   const hourly = $("hourly"); hourly.innerHTML = "";
-  setBackground(cur);
-  // first slot = Now
   const nowEl = document.createElement("div"); nowEl.className = "h-item";
   nowEl.innerHTML = `<span class="h-t">Now</span><i class="${iconFor(cur.weather[0].icon)}"></i><span class="h-tm">${round(cur.main.temp)}°</span>`;
   hourly.appendChild(nowEl);
@@ -119,7 +145,6 @@ function render(name, cur, fc){
     hourly.appendChild(el);
   });
 
-  // Daily — group by date
   const days = {};
   fc.list.forEach(item=>{
     const d = new Date((item.dt+tz)*1000).toISOString().slice(0,10);
@@ -131,7 +156,6 @@ function render(name, cur, fc){
   Object.values(days).slice(0,7).forEach((arr,i)=>{
     const lo = Math.min(...arr.map(x=>x.main.temp_min));
     const hi = Math.max(...arr.map(x=>x.main.temp_max));
-    // pick midday icon
     const mid = arr[Math.floor(arr.length/2)];
     const left = ((lo - wkMin) / (wkMax - wkMin)) * 100;
     const right = ((hi - wkMin) / (wkMax - wkMin)) * 100;
@@ -145,7 +169,6 @@ function render(name, cur, fc){
     dailyEl.appendChild(row);
   });
 
-  // Metrics
   const wind = round(cur.wind.speed * 3.6);
   $("wind").textContent = wind;
   $("hum").textContent = cur.main.humidity + "%";
@@ -159,7 +182,6 @@ function render(name, cur, fc){
   $("sunrise").textContent = fmtTime(cur.sys.sunrise, tz);
   $("sunset").textContent = fmtTime(cur.sys.sunset, tz);
 
-  // UV (free tier — approximate from clouds + time of day)
   const uv = approximateUV(cur);
   $("uv").textContent = uv;
   $("uvLabel").textContent = uvLabel(uv);
@@ -176,13 +198,95 @@ function approximateUV(cur){
   return Math.round(11 * factor * cloudFactor);
 }
 
-/* Events */
-$("searchInput").addEventListener("keydown", async (e)=>{
-  if (e.key !== "Enter") return;
-  const q = e.target.value.trim(); if (!q) return;
-  try { const g = await geocode(q); loadWeather(g.lat, g.lon, g.name); }
-  catch(err){ alert(err.message); }
+/* ---------- Autocomplete search ---------- */
+const input = $("searchInput");
+const suggest = $("suggest");
+let suggestItems = [];
+let activeIdx = -1;
+let debounceT;
+
+function flagEmojiToText(cc){
+  if (!cc) return "";
+  return cc.toUpperCase();
+}
+
+function renderSuggest(items){
+  suggestItems = items;
+  activeIdx = -1;
+  if (!items.length){
+    suggest.innerHTML = `<div class="muted">No results</div>`;
+    suggest.classList.add("open");
+    return;
+  }
+  suggest.innerHTML = items.map((it,i)=>{
+    const sub = [it.state, it.country].filter(Boolean).join(", ");
+    return `<div class="item" role="option" data-i="${i}">
+      <i class="fa-solid fa-location-dot"></i>
+      <div><div>${it.name}</div><div style="font-size:12px;color:rgba(255,255,255,.65)">${sub}</div></div>
+    </div>`;
+  }).join("");
+  suggest.classList.add("open");
+  suggest.querySelectorAll(".item").forEach(el=>{
+    el.addEventListener("mousedown",(ev)=>{ // mousedown so it fires before blur
+      ev.preventDefault();
+      const i = +el.dataset.i;
+      pickSuggest(i);
+    });
+  });
+}
+
+function pickSuggest(i){
+  const it = suggestItems[i]; if (!it) return;
+  const label = `${it.name}${it.state?", "+it.state:""}`;
+  input.value = label;
+  closeSuggest();
+  loadWeather(it.lat, it.lon, label);
+}
+
+function closeSuggest(){ suggest.classList.remove("open"); }
+
+input.addEventListener("input", ()=>{
+  const q = input.value.trim();
+  clearTimeout(debounceT);
+  if (q.length < 2){ closeSuggest(); return; }
+  debounceT = setTimeout(async ()=>{
+    try {
+      const items = await geocodeMany(q, 5);
+      renderSuggest(items);
+    } catch{}
+  }, 220);
 });
+
+input.addEventListener("keydown",(e)=>{
+  if (suggest.classList.contains("open") && suggestItems.length){
+    if (e.key === "ArrowDown"){ e.preventDefault(); activeIdx = (activeIdx+1) % suggestItems.length; updateActive(); return; }
+    if (e.key === "ArrowUp"){ e.preventDefault(); activeIdx = (activeIdx-1+suggestItems.length) % suggestItems.length; updateActive(); return; }
+    if (e.key === "Enter"){ e.preventDefault(); if (activeIdx>=0){ pickSuggest(activeIdx); return; } }
+  }
+  if (e.key === "Enter"){
+    e.preventDefault();
+    const q = input.value.trim(); if (!q) return;
+    geocodeMany(q,1).then(items=>{
+      if (!items.length){ alert("City not found"); return; }
+      const it = items[0];
+      const label = `${it.name}${it.state?", "+it.state:""}`;
+      input.value = label;
+      closeSuggest();
+      loadWeather(it.lat,it.lon,label);
+    });
+  }
+  if (e.key === "Escape") closeSuggest();
+});
+
+function updateActive(){
+  suggest.querySelectorAll(".item").forEach((el,i)=>{
+    el.classList.toggle("active", i===activeIdx);
+  });
+}
+
+input.addEventListener("blur", ()=> setTimeout(closeSuggest, 120));
+input.addEventListener("focus", ()=>{ if (suggestItems.length) suggest.classList.add("open"); });
+document.addEventListener("click",(e)=>{ if (!e.target.closest(".search-wrap")) closeSuggest(); });
 
 $("locBtn").addEventListener("click", useGeo);
 
@@ -198,8 +302,4 @@ function useGeo(){
   );
 }
 
-/* Boot */
-if (API_KEY.startsWith("REPLACE")) {
-  console.warn("Add your OpenWeather API key in public/weather/weather.js");
-}
 useGeo();
