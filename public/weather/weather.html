@@ -9,15 +9,19 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 </head>
 <body>
-  <div class="bg-image" id="bgImage"></div>
+  <div class="bg-layer" id="bgA"></div>
+  <div class="bg-layer" id="bgB"></div>
   <div class="bg-overlay"></div>
 
   <main class="app">
     <!-- Search -->
-    <div class="search-bar glass">
-      <i class="fa-solid fa-magnifying-glass"></i>
-      <input id="searchInput" type="text" placeholder="Search city or airport" autocomplete="off" />
-      <button id="locBtn" title="My location"><i class="fa-solid fa-location-crosshairs"></i></button>
+    <div class="search-wrap">
+      <div class="search-bar glass">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input id="searchInput" type="text" placeholder="Search city or airport" autocomplete="off" spellcheck="false" />
+        <button id="locBtn" title="My location"><i class="fa-solid fa-location-crosshairs"></i></button>
+      </div>
+      <div class="suggest glass" id="suggest" role="listbox"></div>
     </div>
 
     <!-- Hero -->
