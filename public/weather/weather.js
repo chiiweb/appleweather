@@ -2,6 +2,12 @@
 const API_KEY = "5eeee11cdb5e6f638c5145acafd9ac51";
 const BASE = "https://api.openweathermap.org";
 
+/* Temperature unit (C metric / F imperial) */
+let UNIT = localStorage.getItem("weatherUnit") || "C";
+let lastData = null; // { name, cur, fc }
+const cToUnit = (c) => UNIT === "F" ? (c * 9/5 + 32) : c;
+const tempStr = (c) => Math.round(cToUnit(c)) + "°";
+
 /* Crossfade background system */
 const bgEls = [document.getElementById("bgA"), document.getElementById("bgB")];
 let bgActive = 0;
