@@ -19,6 +19,10 @@
       <div class="search-bar glass">
         <i class="fa-solid fa-magnifying-glass"></i>
         <input id="searchInput" type="text" placeholder="Search city or airport" autocomplete="off" spellcheck="false" />
+        <div class="unit-toggle" id="unitToggle" role="tablist" aria-label="Temperature unit">
+          <button class="unit-btn active" data-unit="C" type="button">°C</button>
+          <button class="unit-btn" data-unit="F" type="button">°F</button>
+        </div>
         <button id="locBtn" title="My location"><i class="fa-solid fa-location-crosshairs"></i></button>
       </div>
       <div class="suggest glass" id="suggest" role="listbox"></div>
