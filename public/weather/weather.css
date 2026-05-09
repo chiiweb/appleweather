@@ -6,8 +6,10 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{min-height:100%;background:#0a1024;color:#fff;font-family:"SF Pro",-apple-system,BlinkMacSystemFont,system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 
-.bg-image{position:fixed;inset:0;width:100vw;height:100vh;background-size:cover;background-position:center;z-index:-2;transition:background-image 1.2s ease-in-out}
-.bg-overlay{position:fixed;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.18) 0%,rgba(0,0,0,.05) 35%,rgba(0,0,0,.25) 100%);z-index:-1;pointer-events:none}
+/* Crossfading background layers */
+.bg-layer{position:fixed;inset:0;width:100vw;height:100vh;background-size:cover;background-position:center;background-repeat:no-repeat;z-index:-2;opacity:0;transition:opacity 1.4s ease-in-out;will-change:opacity}
+.bg-layer.active{opacity:1}
+.bg-overlay{position:fixed;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.18) 0%,rgba(0,0,0,.05) 35%,rgba(0,0,0,.32) 100%);z-index:-1;pointer-events:none}
 
 .app{max-width:480px;margin:0 auto;padding:env(safe-area-inset-top,18px) 18px 40px;display:flex;flex-direction:column;gap:14px}
 
@@ -25,13 +27,26 @@ html,body{min-height:100%;background:#0a1024;color:#fff;font-family:"SF Pro",-ap
 }
 
 /* Search */
+.search-wrap{position:relative}
 .search-bar{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:16px}
 .search-bar i{color:rgba(255,255,255,.75)}
 .search-bar input{flex:1;background:transparent;border:0;outline:0;color:#fff;font:500 16px "SF Pro",sans-serif}
 .search-bar input::placeholder{color:rgba(255,255,255,.6)}
 .search-bar button{background:transparent;border:0;color:rgba(255,255,255,.85);cursor:pointer;font-size:16px}
 
-/* Hero — like Apple ref */
+.suggest{position:absolute;top:calc(100% + 6px);left:0;right:0;border-radius:16px;padding:6px;z-index:5;display:none;max-height:280px;overflow-y:auto}
+.suggest.open{display:block;animation:fade .18s ease-out}
+.suggest .item{padding:10px 12px;border-radius:12px;cursor:pointer;display:flex;align-items:center;gap:10px;font-size:15px;color:#fff;transition:background .15s}
+.suggest .item:hover,.suggest .item.active{background:rgba(255,255,255,.16)}
+.suggest .item i{color:rgba(255,255,255,.7);font-size:13px}
+.suggest .muted{color:rgba(255,255,255,.6);font-size:13px;padding:10px 12px}
+@keyframes fade{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+
+/* Smooth content swap */
+.swap{transition:opacity .5s ease}
+.swap.fading{opacity:0}
+
+/* Hero */
 .hero{text-align:center;padding:28px 8px 10px;text-shadow:0 2px 18px rgba(0,0,0,.18)}
 .hero h1{font-weight:400;font-size:36px;letter-spacing:.2px}
 .temp-row{display:inline-flex;align-items:flex-start;justify-content:center;font-weight:200}
@@ -55,12 +70,9 @@ html,body{min-height:100%;background:#0a1024;color:#fff;font-family:"SF Pro",-ap
 .h-item i{font-size:24px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.25))}
 .h-item .h-tm{font-weight:500;font-size:20px}
 .h-item .h-pop{font-size:11px;color:#7ec8ff;margin-top:-4px}
-/* color icons like apple */
-.fa-sun{color:#ffd24a}
-.fa-cloud-sun,.fa-cloud-moon{color:#ffd24a}
+.fa-sun,.fa-cloud-sun,.fa-cloud-moon,.fa-cloud-bolt{color:#ffd24a}
 .fa-cloud,.fa-clouds{color:#e6ecf5}
 .fa-cloud-sun-rain,.fa-cloud-moon-rain,.fa-cloud-showers-heavy,.fa-cloud-rain{color:#9cc7ff}
-.fa-cloud-bolt{color:#ffd24a}
 .fa-snowflake{color:#cfe9ff}
 .fa-moon{color:#f5e9b8}
 
@@ -82,7 +94,7 @@ html,body{min-height:100%;background:#0a1024;color:#fff;font-family:"SF Pro",-ap
 .big{font-size:30px;font-weight:400;letter-spacing:-.5px}
 .sub{font-size:13px;color:rgba(255,255,255,.78);margin-top:6px}
 .uv-bar{height:5px;background:rgba(255,255,255,.22);border-radius:99px;margin-top:10px;overflow:hidden}
-.uv-bar #uvFill{height:100%;background:linear-gradient(90deg,#7be37b,#ffd166,#ff7a59,#ff3b6b,#a45cff);width:0%}
+.uv-bar #uvFill{height:100%;background:linear-gradient(90deg,#7be37b,#ffd166,#ff7a59,#ff3b6b,#a45cff);width:0%;transition:width .6s ease}
 
 .foot{text-align:center;font-size:12px;color:rgba(255,255,255,.6);margin-top:6px}
 
