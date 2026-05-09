@@ -2,6 +2,12 @@
 const API_KEY = "5eeee11cdb5e6f638c5145acafd9ac51";
 const BASE = "https://api.openweathermap.org";
 
+/* Temperature unit (C metric / F imperial) */
+let UNIT = localStorage.getItem("weatherUnit") || "C";
+let lastData = null; // { name, cur, fc }
+const cToUnit = (c) => UNIT === "F" ? (c * 9/5 + 32) : c;
+const tempStr = (c) => Math.round(cToUnit(c)) + "°";
+
 /* Crossfade background system */
 const bgEls = [document.getElementById("bgA"), document.getElementById("bgB")];
 let bgActive = 0;
@@ -112,7 +118,8 @@ async function loadWeather(lat, lon, name){
     const cur = await curR.json();
     const fc  = await fcR.json();
     setBackground(cur);
-    withTransition(()=> render(name || cur.name, cur, fc));
+    lastData = { name: name || cur.name, cur, fc };
+    withTransition(()=> render(lastData.name, cur, fc));
   } catch (e) {
     alert(e.message);
     console.error(e);
@@ -124,23 +131,23 @@ async function loadWeather(lat, lon, name){
 function render(name, cur, fc){
   const tz = cur.timezone || 0;
   $("city").textContent = name;
-  $("temp").textContent = round(cur.main.temp);
+  $("temp").textContent = Math.round(cToUnit(cur.main.temp));
   $("cond").textContent = cur.weather[0].description.replace(/\b\w/g,c=>c.toUpperCase());
   const next24 = fc.list.slice(0,8);
-  const hi = round(Math.max(...next24.map(x=>x.main.temp_max)));
-  const lo = round(Math.min(...next24.map(x=>x.main.temp_min)));
-  $("hi").textContent = hi+"°"; $("lo").textContent = lo+"°";
+  const hi = Math.max(...next24.map(x=>x.main.temp_max));
+  const lo = Math.min(...next24.map(x=>x.main.temp_min));
+  $("hi").textContent = tempStr(hi); $("lo").textContent = tempStr(lo);
 
   const hourly = $("hourly"); hourly.innerHTML = "";
   const nowEl = document.createElement("div"); nowEl.className = "h-item";
-  nowEl.innerHTML = `<span class="h-t">Now</span><i class="${iconFor(cur.weather[0].icon)}"></i><span class="h-tm">${round(cur.main.temp)}°</span>`;
+  nowEl.innerHTML = `<span class="h-t">Now</span><i class="${iconFor(cur.weather[0].icon)}"></i><span class="h-tm">${tempStr(cur.main.temp)}</span>`;
   hourly.appendChild(nowEl);
   fc.list.slice(0,10).forEach(item=>{
     const pop = Math.round((item.pop||0)*100);
     const el = document.createElement("div"); el.className = "h-item";
     el.innerHTML = `<span class="h-t">${fmtHour(item.dt,tz)}</span>
       <i class="${iconFor(item.weather[0].icon)}"></i>
-      <span class="h-tm">${round(item.main.temp)}°</span>
+      <span class="h-tm">${tempStr(item.main.temp)}</span>
       ${pop>=20?`<span class="h-pop">${pop}%</span>`:""}`;
     hourly.appendChild(el);
   });
@@ -163,9 +170,9 @@ function render(name, cur, fc){
     row.innerHTML = `
       <span class="d-day">${dayName(arr[0].dt,tz,i)}</span>
       <i class="${iconFor(mid.weather[0].icon)}"></i>
-      <span class="d-lo">${round(lo)}°</span>
+      <span class="d-lo">${tempStr(lo)}</span>
       <div class="d-bar"><span style="left:${left}%;right:${100-right}%"></span></div>
-      <span class="d-hi">${round(hi)}°</span>`;
+      <span class="d-hi">${tempStr(hi)}</span>`;
     dailyEl.appendChild(row);
   });
 
@@ -173,10 +180,10 @@ function render(name, cur, fc){
   $("wind").textContent = wind;
   $("hum").textContent = cur.main.humidity + "%";
   const dew = cur.main.temp - ((100 - cur.main.humidity)/5);
-  $("dew").textContent = round(dew);
+  $("dew").textContent = Math.round(cToUnit(dew));
   $("vis").textContent = (cur.visibility/1000).toFixed(1);
   $("press").textContent = cur.main.pressure;
-  $("feels").textContent = round(cur.main.feels_like) + "°";
+  $("feels").textContent = tempStr(cur.main.feels_like);
   const rain = (cur.rain && (cur.rain["1h"]||cur.rain["3h"])) || 0;
   $("precip").textContent = rain.toFixed(1);
   $("sunrise").textContent = fmtTime(cur.sys.sunrise, tz);
@@ -187,6 +194,20 @@ function render(name, cur, fc){
   $("uvLabel").textContent = uvLabel(uv);
   $("uvFill").style.width = Math.min(100, (uv/11)*100) + "%";
 }
+
+/* Unit toggle */
+document.querySelectorAll("#unitToggle .unit-btn").forEach(btn=>{
+  if (btn.dataset.unit === UNIT) btn.classList.add("active");
+  else btn.classList.remove("active");
+  btn.addEventListener("click", ()=>{
+    const u = btn.dataset.unit;
+    if (u === UNIT) return;
+    UNIT = u;
+    localStorage.setItem("weatherUnit", u);
+    document.querySelectorAll("#unitToggle .unit-btn").forEach(b=>b.classList.toggle("active", b.dataset.unit===UNIT));
+    if (lastData) withTransition(()=> render(lastData.name, lastData.cur, lastData.fc));
+  });
+});
 
 function approximateUV(cur){
   const now = Date.now()/1000;
