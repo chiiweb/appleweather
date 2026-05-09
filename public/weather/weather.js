@@ -118,7 +118,8 @@ async function loadWeather(lat, lon, name){
     const cur = await curR.json();
     const fc  = await fcR.json();
     setBackground(cur);
-    withTransition(()=> render(name || cur.name, cur, fc));
+    lastData = { name: name || cur.name, cur, fc };
+    withTransition(()=> render(lastData.name, cur, fc));
   } catch (e) {
     alert(e.message);
     console.error(e);
